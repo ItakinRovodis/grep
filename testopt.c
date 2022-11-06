@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
                 eflag++;
                 break;
             case 'i':
+                printf("optarg == %s\n", optarg);
                 iflag = 1;
                 break;
             case 'v':

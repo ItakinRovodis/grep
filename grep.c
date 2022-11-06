@@ -24,11 +24,12 @@ int main(int argc, char **argv) {
       {"invert-match", no_argument, NULL, 'v'},
       {0, 0, 0, 0}
     };
+    
 	while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o?", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
 				targetStringIndecies[eflag] = optind;
-				eflag++;
+				eflag = 1;
 				break;
 			case 'i':
 				iflag = 1;
@@ -62,50 +63,40 @@ int main(int argc, char **argv) {
 				exit(1);
 		}
 	}
-
-	FILE *fp;
-	const int bufferSize = 4096;
-	char buffer[bufferSize];
-	int currentFile = optind+2;
-	targetString = argv[optind];
-	while (currentFile < argc) {
-		if (argc < 3) {
-			printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
-			exit(1);
-		} else {
-			fp = fopen(argv[currentFile], "rb");
-			if (fp == NULL) {
-				fprintf(stderr, "%s: %s : No such file of directory\n",
-					argv[0], argv[currentFile]);
-				exit(1);
-			}
-		}
-		if (eflag > 0) {
-			for (int i = 0; i < eflag; ++i) {
-				if (i == 0) {
-					targetString = argv[targetStringIndecies[i]+1];
-				} else {
-					targetString = argv[targetStringIndecies[i]];
-				}
-				while (fgets(buffer, bufferSize, fp)) {
-					int length = strlen(buffer);
-					buffer[length-1] = '\0';
-					if (strstr(buffer, targetString) != NULL) {
-						fprintf(stdout, "%s\n", buffer);
-					}
-				}
-				fclose(fp);
-				fp = fopen(argv[currentFile], "rb");
-			}
-			
-		} else {
-			while (fgets(buffer, bufferSize, fp)) {
-				int length = strlen(buffer);
-				buffer[length-1] = '\0';
-				if (strstr(buffer, targetString) != NULL) {
-					fprintf(stdout, "%s\n", buffer);
-				}
-			}
+    int flags_sum = eflag + iflag + vflag + cflag + lflag + nflag + hflag + sflag + fflag + oflag;
+    char * pattern;
+    if (flags_sum == 0) {
+        pattern = argv[1];
+        FILE *fp = fopen(argv[2],"rb");
+        const int bufferSize = 4096;
+        char buffer[bufferSize];
+        while (fgets(buffer,bufferSize,fp) != NULL) {
+            if (strstr(buffer,pattern) != NULL) {
+                printf("FOUND ==\t%s\n", buffer);
+            }
+        }
+    } else {
+        FILE *fp;
+        const int bufferSize = 4096;
+        char buffer[bufferSize];
+        char pattern_buffer[bufferSize];
+        char file_buffer[bufferSize];
+        int currentFile = optind+1;
+        while (currentFile < argc) {
+            if (argc < 3) {
+                printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
+                exit(1);
+            } else {
+                fp = fopen(argv[currentFile], "rb");
+                if (fp == NULL) {
+                    fprintf(stderr, "%s: %s : No such file of directory\n",
+                            argv[0], argv[currentFile]);
+                    exit(1);
+                }
+            }
+            if (eflag > 0) {
+                
+            }
 		}		
 		fclose(fp);
 		currentFile++;
