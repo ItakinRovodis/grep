@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 
 int main(int argc, char **argv) {
 
@@ -9,8 +10,21 @@ int main(int argc, char **argv) {
 	int opt;
 	char * targetString;
 	int targetStringIndecies[10];
-
-	while ((opt = getopt(argc, argv, "eivclnhsfo?")) != -1) {
+    static struct option const long_options[] =
+    {
+      {"count", no_argument, NULL, 'c'},
+      {"file", required_argument, NULL, 'f'},
+      {"files-with-matches", no_argument, NULL, 'l'},
+      {"ignore-case", no_argument, NULL, 'i'},
+      {"line-number", no_argument, NULL, 'n'},
+      {"no-filename", no_argument, NULL, 'h'},
+      {"no-messages", no_argument, NULL, 's'},
+      {"only-matching", no_argument, NULL, 'o'},
+      {"regexp", required_argument, NULL, 'e'},
+      {"invert-match", no_argument, NULL, 'v'},
+      {0, 0, 0, 0}
+    };
+	while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o?", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
 				targetStringIndecies[eflag] = optind;
