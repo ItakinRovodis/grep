@@ -8,7 +8,6 @@ int main(int argc, char **argv) {
 
 	int eflag = 0, iflag = 0, vflag = 0, cflag = 0, lflag = 0, nflag = 0, hflag = 0, sflag = 0, fflag = 0, oflag = 0;
 	int opt;
-	char * targetString;
 	int targetStringIndecies[10];
     static struct option const long_options[] =
     {
@@ -24,11 +23,13 @@ int main(int argc, char **argv) {
       {"invert-match", no_argument, NULL, 'v'},
       {0, 0, 0, 0}
     };
-    
+    const int bufferSize = 4096;
+    char patterns[bufferSize];    
 	while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o?", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
-				targetStringIndecies[eflag] = optind;
+				strcat(patterns, optarg);
+				strcat(patterns, "\n");
 				eflag = 1;
 				break;
 			case 'i':
@@ -63,9 +64,17 @@ int main(int argc, char **argv) {
 				exit(1);
 		}
 	}
+	char * sep = "\n";
+	char * istr;
+	istr = strtok(patterns, sep);
+	while (istr != NULL) {
+		printf("%s\t", istr);
+		istr = strtok(NULL,sep);
+	}
     int flags_sum = eflag + iflag + vflag + cflag + lflag + nflag + hflag + sflag + fflag + oflag;
     char * pattern;
     if (flags_sum == 0) {
+
         pattern = argv[1];
         FILE *fp = fopen(argv[2],"rb");
         const int bufferSize = 4096;
@@ -77,17 +86,18 @@ int main(int argc, char **argv) {
         }
     } else {
         FILE *fp;
-        const int bufferSize = 4096;
+        int currentFile = optind;
         char buffer[bufferSize];
         char pattern_buffer[bufferSize];
         char file_buffer[bufferSize];
-        int currentFile = optind+1;
+       
         while (currentFile < argc) {
             if (argc < 3) {
                 printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
                 exit(1);
             } else {
                 fp = fopen(argv[currentFile], "rb");
+                 printf("%s\n", argv[currentFile]);
                 if (fp == NULL) {
                     fprintf(stderr, "%s: %s : No such file of directory\n",
                             argv[0], argv[currentFile]);
@@ -97,9 +107,10 @@ int main(int argc, char **argv) {
             if (eflag > 0) {
                 
             }
+            fclose(fp);
+            currentFile++;
 		}		
-		fclose(fp);
-		currentFile++;
+		
 	}
 
 	return 0;
