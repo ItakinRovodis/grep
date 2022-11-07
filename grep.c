@@ -3,11 +3,15 @@
 #include <string.h>
 #include <unistd.h>
 #include <getopt.h>
+#include <regex.h>
 
 int main(int argc, char **argv) {
 
+	printf("ARGC == %d\n", argc);
+
 	int eflag = 0, iflag = 0, vflag = 0, cflag = 0, lflag = 0, nflag = 0, hflag = 0, sflag = 0, fflag = 0, oflag = 0;
 	int opt;
+	int reg_flag = 0;
 	int targetStringIndecies[10];
     static struct option const long_options[] =
     {
@@ -28,16 +32,16 @@ int main(int argc, char **argv) {
 	while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o?", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
-				patterns = (char**)realloc(patterns, sizeof(patterns)+sizeof(char**));
+				patterns = (char**)realloc(patterns, sizeof(patterns)+sizeof(char**)); // work!
 				patterns[eflag] = (char*)malloc(strlen(optarg) * sizeof(char));
 				strcpy(patterns[eflag], optarg);
 				eflag++;
 				break;
 			case 'i':
-				iflag = 1;
+				iflag = REG_ICASE; // work!
 				break;
 			case 'v':
-				vflag = 1;
+				vflag = 1; // work!
 				break;
 			case 'c':
 				cflag = 1;
@@ -55,7 +59,7 @@ int main(int argc, char **argv) {
 				sflag = 1;
 				break;
 			case 'f':
-				fflag = 1;
+				fflag = 1;  // seem to be work
 				FILE *fpattern = fopen(optarg, "rb");
 				if (fpattern != NULL) {
 					char str[bufferSize];
@@ -76,19 +80,17 @@ int main(int argc, char **argv) {
 				exit(1);
 		}
 	}
-	char * pattern;
+	regex_t pattern;
+	int value;
     FILE *fp;
     int currentFile = optind;
     if (!eflag) {
-    	pattern = argv[optind];
-    	printf("%s\n", pattern);
+    	value = regcomp(&pattern, argv[optind], iflag);
     	currentFile = optind+1;
     }
-    char buffer[bufferSize];
-    char file_buffer[bufferSize];
-    for (int i = 0; i < eflag; ++i) {
-    	printf("patterns  ==  %s\n", patterns[i]);
-    }
+    // 
+    int count_files = argc - currentFile;
+    printf("count_files == %d\n", count_files);
     while (currentFile < argc) {
     	if (argc < 3) {
     		printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
@@ -104,12 +106,22 @@ int main(int argc, char **argv) {
         const int bufferSize = 4096;
         char buffer[bufferSize];
         while (fgets(buffer,bufferSize,fp) != NULL) {
-        	for (int i = 0; i < eflag; ++i) {
-        		pattern = patterns[i];
-        		if (strstr(buffer,pattern) != NULL) {
-        			printf("FOUND ==\t%s\n", buffer);
+        	if (!eflag) {
+        		if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) {
+        			printf("%s", buffer);
+        		} else if (!vflag && !regexec(&pattern, buffer, 0, NULL, 0)) {
+        			printf("%s", buffer);
         		}
-        	}            
+        	} else {
+        		for (int i = 0; i < eflag; ++i) {
+        			regcomp(&pattern, patterns[i], iflag);
+        		if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) { // regexec == 0 if found
+        			printf("%s", buffer);
+        		} else if (!regexec(&pattern, buffer, 0, NULL, 0)) {
+        			printf("%s", buffer);
+        		}
+        	}       
+        	}     
         }
     	fclose(fp);
     	currentFile++;

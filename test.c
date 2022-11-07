@@ -6,8 +6,11 @@ int main(int argc, char** argv) {
     int reti;
     char buf[100];
     char * pattern = argv[1];
-    reti = regcomp(&regex,pattern,0);
+    int flag = REG_ICASE;
+    reti = regcomp(&regex,pattern,flag); // Не должен учитывать регистр
+    
     FILE *fp = fopen(argv[2], "rb");
+
     while (fgets(buf,sizeof(buf),fp)) {
         reti = regexec(&regex,buf,0,NULL,0);
         if (!reti) {
