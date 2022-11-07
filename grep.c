@@ -24,13 +24,14 @@ int main(int argc, char **argv) {
       {0, 0, 0, 0}
     };
     const int bufferSize = 4096;
-    char patterns[bufferSize];    
+    char ** patterns = NULL;  
 	while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o?", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
-				strcat(patterns, optarg);
-				strcat(patterns, "\n");
-				eflag = 1;
+				patterns = (char**)realloc(patterns, sizeof(patterns)+sizeof(char**));
+				patterns[eflag] = (char*)malloc(strlen(optarg) * sizeof(char));
+				strcpy(patterns[eflag], optarg);
+				eflag++;
 				break;
 			case 'i':
 				iflag = 1;
@@ -59,8 +60,10 @@ int main(int argc, char **argv) {
 				if (fpattern != NULL) {
 					char str[bufferSize];
 					while (fgets(str,bufferSize,fpattern) != NULL) {
-						strcat(patterns, str);
-						strcat(patterns, "\n");
+						patterns = (char**)realloc(patterns, sizeof(patterns)+sizeof(char**));
+						patterns[eflag] = (char*)malloc(strlen(str) * sizeof(char));
+						strcpy(patterns[eflag], str);
+						eflag++;
 					}
 					fclose(fpattern);
 				}
@@ -83,6 +86,9 @@ int main(int argc, char **argv) {
     }
     char buffer[bufferSize];
     char file_buffer[bufferSize];
+    for (int i = 0; i < eflag; ++i) {
+    	printf("patterns  ==  %s\n", patterns[i]);
+    }
     while (currentFile < argc) {
     	if (argc < 3) {
     		printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
@@ -98,13 +104,11 @@ int main(int argc, char **argv) {
         const int bufferSize = 4096;
         char buffer[bufferSize];
         while (fgets(buffer,bufferSize,fp) != NULL) {
-        	printf("patterns :: %s\n\n", patterns);
-        	pattern = strtok(patterns, "\n");
-        	while (pattern != NULL) {
+        	for (int i = 0; i < eflag; ++i) {
+        		pattern = patterns[i];
         		if (strstr(buffer,pattern) != NULL) {
         			printf("FOUND ==\t%s\n", buffer);
         		}
-        		pattern = strtok(NULL, "\n");
         	}            
         }
     	fclose(fp);
