@@ -10,6 +10,6 @@ int main () {
 	do {
 		p=strtok(NULL, ", ");
 		if(p != NULL) printf("|%s", p);
-	} while(p != NULL);
+	} while(p != NULL); // strtok портит исходную строку!!
 	return 0;
 }
