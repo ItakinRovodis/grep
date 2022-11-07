@@ -114,6 +114,9 @@ int main(int argc, char **argv) {
     	fclose(fp);
     	currentFile++;
 	}
-
+	for (int i = 0; i < eflag; ++i) {
+    	free(patterns[i]);
+    }
+    free(patterns);
 	return 0;
 }
