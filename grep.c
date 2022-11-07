@@ -73,52 +73,42 @@ int main(int argc, char **argv) {
 				exit(1);
 		}
 	}
-	char * sep = "\n";
-	char * istr;
-	istr = strtok(patterns, sep);
-	while (istr != NULL) {
-		printf("%s\t", istr);
-		istr = strtok(NULL,sep);
-	}
-    int flags_sum = eflag + iflag + vflag + cflag + lflag + nflag + hflag + sflag + fflag + oflag;
-    char * pattern;
-    if (flags_sum == 0) {
-
-        pattern = argv[1];
-        FILE *fp = fopen(argv[2],"rb");
+	char * pattern;
+    FILE *fp;
+    int currentFile = optind;
+    if (!eflag) {
+    	pattern = argv[optind];
+    	printf("%s\n", pattern);
+    	currentFile = optind+1;
+    }
+    char buffer[bufferSize];
+    char file_buffer[bufferSize];
+    while (currentFile < argc) {
+    	if (argc < 3) {
+    		printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
+    		exit(1);
+    	} else {
+    		fp = fopen(argv[currentFile], "rb");
+    		if (fp == NULL) {
+    			fprintf(stderr, "%s: %s : No such file of directory\n",
+    				argv[0], argv[currentFile]);
+    			exit(1);
+    		}
+    	}
         const int bufferSize = 4096;
         char buffer[bufferSize];
         while (fgets(buffer,bufferSize,fp) != NULL) {
-            if (strstr(buffer,pattern) != NULL) {
-                printf("FOUND ==\t%s\n", buffer);
-            }
+        	printf("patterns :: %s\n\n", patterns);
+        	pattern = strtok(patterns, "\n");
+        	while (pattern != NULL) {
+        		if (strstr(buffer,pattern) != NULL) {
+        			printf("FOUND ==\t%s\n", buffer);
+        		}
+        		pattern = strtok(NULL, "\n");
+        	}            
         }
-    } else {
-        FILE *fp;
-        int currentFile = optind;
-        char buffer[bufferSize];
-        char pattern_buffer[bufferSize];
-        char file_buffer[bufferSize];
-       
-        while (currentFile < argc) {
-            if (argc < 3) {
-                printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
-                exit(1);
-            } else {
-                fp = fopen(argv[currentFile], "rb");
-                 printf("%s\n", argv[currentFile]);
-                if (fp == NULL) {
-                    fprintf(stderr, "%s: %s : No such file of directory\n",
-                            argv[0], argv[currentFile]);
-                    exit(1);
-                }
-            }
-            if (eflag > 0) {
-                
-            }
-            fclose(fp);
-            currentFile++;
-		}		
+    	fclose(fp);
+    	currentFile++;
 	}
 
 	return 0;
