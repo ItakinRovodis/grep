@@ -55,6 +55,15 @@ int main(int argc, char **argv) {
 				break;
 			case 'f':
 				fflag = 1;
+				FILE *fpattern = fopen(optarg, "rb");
+				if (fpattern != NULL) {
+					char str[bufferSize];
+					while (fgets(str,bufferSize,fpattern) != NULL) {
+						strcat(patterns, str);
+						strcat(patterns, "\n");
+					}
+					fclose(fpattern);
+				}
 				break;
 			case 'o':
 				oflag = 1;
@@ -110,7 +119,6 @@ int main(int argc, char **argv) {
             fclose(fp);
             currentFile++;
 		}		
-		
 	}
 
 	return 0;
