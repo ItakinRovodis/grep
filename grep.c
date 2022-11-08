@@ -97,8 +97,8 @@ int main(int argc, char **argv) {
             counter_lines = 0;
     		if (fp == NULL) {
                 if (sflag == 0) {
-                    fprintf(stderr, "%s: %s : No such file of directory\n",
-                            argv[0], argv[currentFile]);
+                    fprintf(stderr, "grep: %s: No such file of directory\n",
+                            argv[currentFile]);
                 }
     			exit(1);
     		}
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
             }
             printf("%s%s%d\n",count_files > 1 ?  argv[currentFile] : "\0",count_files > 1 ? ":" : "\0",counter_lines);
         }
-        if (lflag && cheker && !hflag) {
+        if (lflag && cheker) {
             printf("%s\n", argv[currentFile]);
         }
     	fclose(fp);
