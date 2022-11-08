@@ -109,8 +109,11 @@ int main(int argc, char **argv) {
         int number_line = 0;
         while (fgets(buffer,bufferSize,fp) != NULL) {
             number_line++;
+            char * start_pos = buffer;
+            int count = 0;
+            regmatch_t pmatch[1];
         	if (!eflag) {
-        		if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) {
+        		if (vflag && regexec(&pattern, buffer, 1, pmatch, 0)) {
                     if (cflag) {
                         counter_lines++;
                     } else {
@@ -123,10 +126,19 @@ int main(int argc, char **argv) {
                             if (nflag) {
                                 printf("%d%s", number_line, ":");
                             }
-                            printf("%s", buffer);
+                            if (oflag) {
+                                while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                                    printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
+                                           start_pos + pmatch[0].rm_so);
+                                    start_pos += pmatch[0].rm_eo;
+                                    count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
+                                }
+                            } else {
+                                printf("%s", buffer);
+                            }
                         }
                     }
-        		} else if (!vflag && !regexec(&pattern, buffer, 0, NULL, 0)) {
+        		} else if (!vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
                     if (cflag) {
                         counter_lines++;
                     } else {
@@ -139,14 +151,23 @@ int main(int argc, char **argv) {
                             if (nflag) {
                                 printf("%d%s", number_line, ":");
                             }
-                            printf("%s", buffer);
+                            if (oflag) {
+                                while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                                    printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
+                                           start_pos + pmatch[0].rm_so);
+                                    start_pos += pmatch[0].rm_eo;
+                                    count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
+                                }
+                            } else {
+                                printf("%s", buffer);
+                            }
                         }
                     }
         		}
         	} else {
         		for (int i = 0; i < eflag; ++i) {
         			regcomp(&pattern, patterns[i], iflag);
-                    if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) { // regexec == 0 if found
+                    if (vflag && regexec(&pattern, buffer, 1, pmatch, 0)) { // regexec == 0 if found
                         if (cflag) {
                             counter_lines++;
                             if (lflag) {
@@ -162,10 +183,19 @@ int main(int argc, char **argv) {
                                 if (nflag) {
                                     printf("%d%s", number_line, ":");
                                 }
-                                printf("%s", buffer);
+                                if (oflag) {
+                                    while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                                        printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
+                                               start_pos + pmatch[0].rm_so);
+                                        start_pos += pmatch[0].rm_eo;
+                                        count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
+                                    }
+                                } else {
+                                    printf("%s", buffer);
+                                }
                             }
                         }
-                    } else if (!regexec(&pattern, buffer, 0, NULL, 0)) {
+                    } else if (regexec(&pattern, buffer, 1, pmatch, 0)) {
                         if (cflag) {
                             counter_lines++;
                             if (lflag) {
@@ -181,7 +211,16 @@ int main(int argc, char **argv) {
                                 if (nflag) {
                                     printf("%d%s", number_line, ":");
                                 }
-                                printf("%s", buffer);
+                                if (oflag) {
+                                    while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                                        printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
+                                               start_pos + pmatch[0].rm_so);
+                                        start_pos += pmatch[0].rm_eo;
+                                        count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
+                                    }
+                                } else {
+                                    printf("%s", buffer);
+                                }
                             }
                         }
                     }
