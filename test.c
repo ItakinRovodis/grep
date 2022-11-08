@@ -12,9 +12,17 @@ int main(int argc, char** argv) {
     FILE *fp = fopen(argv[2], "rb");
 
     while (fgets(buf,sizeof(buf),fp)) {
-        reti = regexec(&regex,buf,0,NULL,0);
+        char * start_pos = buf;
+        int count = 0;
+        regmatch_t pmatch[1];
+        reti = regexec(&regex,buf, 1, pmatch, 0);
         if (!reti) {
-            printf("Match!\t%s", buf);
+            while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
+                       start_pos + pmatch[0].rm_so);
+                start_pos += pmatch[0].rm_eo;
+                count = regexec(&regex, start_pos, 1, pmatch, REG_NOTBOL);
+            }
         } else if (reti == REG_NOMATCH){
             printf("No match!\t%s", buf);
         }

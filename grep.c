@@ -96,8 +96,10 @@ int main(int argc, char **argv) {
     		fp = fopen(argv[currentFile], "rb");
             counter_lines = 0;
     		if (fp == NULL) {
-    			fprintf(stderr, "%s: %s : No such file of directory\n",
-    				argv[0], argv[currentFile]);
+                if (sflag == 0) {
+                    fprintf(stderr, "%s: %s : No such file of directory\n",
+                            argv[0], argv[currentFile]);
+                }
     			exit(1);
     		}
     	}
