@@ -6,9 +6,6 @@
 #include <regex.h>
 
 int main(int argc, char **argv) {
-
-	printf("ARGC == %d\n", argc);
-
 	int eflag = 0, iflag = 0, vflag = 0, cflag = 0, lflag = 0, nflag = 0, hflag = 0, sflag = 0, fflag = 0, oflag = 0;
 	int opt;
 	int reg_flag = 0;
@@ -28,7 +25,8 @@ int main(int argc, char **argv) {
       {0, 0, 0, 0}
     };
     const int bufferSize = 4096;
-    char ** patterns = NULL;  
+    int counter_lines = 0;
+    char ** patterns = NULL;
 	while ((opt = getopt_long(argc, argv, "e:ivclnhsf:o?", long_options, NULL)) != -1) {
 		switch (opt) {
 			case 'e':
@@ -44,16 +42,16 @@ int main(int argc, char **argv) {
 				vflag = 1; // work!
 				break;
 			case 'c':
-				cflag = 1;
+				cflag = 1; // work!
 				break;
 			case 'l':
-				lflag = 1;
+				lflag = 1; // work !
 				break;
 			case 'n':
-				nflag = 1;
+				nflag = 1; // work !
 				break;
 			case 'h':
-				hflag = 1;
+				hflag = 1; // work !
 				break;
 			case 's':
 				sflag = 1;
@@ -90,13 +88,13 @@ int main(int argc, char **argv) {
     }
     // 
     int count_files = argc - currentFile;
-    printf("count_files == %d\n", count_files);
     while (currentFile < argc) {
     	if (argc < 3) {
     		printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
     		exit(1);
     	} else {
     		fp = fopen(argv[currentFile], "rb");
+            counter_lines = 0;
     		if (fp == NULL) {
     			fprintf(stderr, "%s: %s : No such file of directory\n",
     				argv[0], argv[currentFile]);
@@ -105,23 +103,97 @@ int main(int argc, char **argv) {
     	}
         const int bufferSize = 4096;
         char buffer[bufferSize];
+        int cheker = 0;
+        int number_line = 0;
         while (fgets(buffer,bufferSize,fp) != NULL) {
+            number_line++;
         	if (!eflag) {
         		if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) {
-        			printf("%s", buffer);
+                    if (cflag) {
+                        counter_lines++;
+                    } else {
+                        if (lflag) {
+                            cheker = 1;
+                        } else {
+                            if (count_files > 1 && !hflag) {
+                                printf("%s%s",argv[currentFile], ":");
+                            }
+                            if (nflag) {
+                                printf("%d%s", number_line, ":");
+                            }
+                            printf("%s", buffer);
+                        }
+                    }
         		} else if (!vflag && !regexec(&pattern, buffer, 0, NULL, 0)) {
-        			printf("%s", buffer);
+                    if (cflag) {
+                        counter_lines++;
+                    } else {
+                        if (lflag) {
+                            cheker = 1;
+                        } else {
+                            if (count_files > 1 && !hflag) {
+                                printf("%s%s",argv[currentFile], ":");
+                            }
+                            if (nflag) {
+                                printf("%d%s", number_line, ":");
+                            }
+                            printf("%s", buffer);
+                        }
+                    }
         		}
         	} else {
         		for (int i = 0; i < eflag; ++i) {
         			regcomp(&pattern, patterns[i], iflag);
-        		if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) { // regexec == 0 if found
-        			printf("%s", buffer);
-        		} else if (!regexec(&pattern, buffer, 0, NULL, 0)) {
-        			printf("%s", buffer);
-        		}
-        	}       
-        	}     
+                    if (vflag && regexec(&pattern, buffer, 0, NULL, 0)) { // regexec == 0 if found
+                        if (cflag) {
+                            counter_lines++;
+                            if (lflag) {
+                                cheker = 1;
+                            }
+                        } else {
+                            if (lflag) {
+                                cheker = 1;
+                            } else {
+                                if (count_files > 1 && !hflag) {
+                                    printf("%s%s",argv[currentFile], ":");
+                                }
+                                if (nflag) {
+                                    printf("%d%s", number_line, ":");
+                                }
+                                printf("%s", buffer);
+                            }
+                        }
+                    } else if (!regexec(&pattern, buffer, 0, NULL, 0)) {
+                        if (cflag) {
+                            counter_lines++;
+                            if (lflag) {
+                                cheker = 1;
+                            }
+                        } else {
+                            if (lflag) {
+                                cheker = 1;
+                            } else {
+                                if (count_files > 1 && !hflag) {
+                                    printf("%s%s",argv[currentFile], ":");
+                                }
+                                if (nflag) {
+                                    printf("%d%s", number_line, ":");
+                                }
+                                printf("%s", buffer);
+                            }
+                        }
+                    }
+                }
+        	}
+        }
+        if (cflag) {
+            if (lflag && counter_lines > 0) {
+                counter_lines = 1;
+            }
+            printf("%s%s%d\n",count_files > 1 ?  argv[currentFile] : "\0",count_files > 1 ? ":" : "\0",counter_lines);
+        }
+        if (lflag && cheker && !hflag) {
+            printf("%s\n", argv[currentFile]);
         }
     	fclose(fp);
     	currentFile++;
