@@ -88,11 +88,13 @@ int main(int argc, char **argv) {
     }
     // 
     int count_files = argc - currentFile;
+    int file_flg;
     while (currentFile < argc) {
     	if (argc < 3) {
     		printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
     		exit(1);
     	} else {
+            
     		fp = fopen(argv[currentFile], "rb");
             counter_lines = 0;
     		if (fp == NULL) {
@@ -100,14 +102,18 @@ int main(int argc, char **argv) {
                     fprintf(stderr, "grep: %s: No such file of directory\n",
                             argv[currentFile]);
                 }
-    			exit(1);
-    		}
+                file_flg = 0;
+            } else {
+                
+                file_flg = 1;
+            }
     	}
         const int bufferSize = 4096;
         char buffer[bufferSize];
         int cheker = 0;
         int number_line = 0;
-        while (fgets(buffer,bufferSize,fp) != NULL) {
+        if (file_flg == 1) {
+            while (fgets(buffer,bufferSize,fp) != NULL) {
             number_line++;
             char * start_pos = buffer;
             int count = 0;
@@ -195,7 +201,7 @@ int main(int argc, char **argv) {
                                 }
                             }
                         }
-                    } else if (regexec(&pattern, buffer, 1, pmatch, 0)) {
+                    } else if (!regexec(&pattern, buffer, 1, pmatch, 0)) {
                         if (cflag) {
                             counter_lines++;
                             if (lflag) {
@@ -227,16 +233,18 @@ int main(int argc, char **argv) {
                 }
         	}
         }
-        if (cflag) {
-            if (lflag && counter_lines > 0) {
-                counter_lines = 1;
+            if (cflag) {
+                if (lflag && counter_lines > 0) {
+                    counter_lines = 1;
+                }
+                printf("%s%s%d\n",count_files > 1 ?  argv[currentFile] : "\0",count_files > 1 ? ":" : "\0",counter_lines);
             }
-            printf("%s%s%d\n",count_files > 1 ?  argv[currentFile] : "\0",count_files > 1 ? ":" : "\0",counter_lines);
+            if (lflag && cheker) {
+                printf("%s\n", argv[currentFile]);
+            }
+            fclose(fp);
         }
-        if (lflag && cheker) {
-            printf("%s\n", argv[currentFile]);
-        }
-    	fclose(fp);
+        
     	currentFile++;
 	}
 	for (int i = 0; i < eflag; ++i) {
