@@ -134,12 +134,12 @@ int main(int argc, char **argv) {
                             if (count_files > 1 && !hflag) {
                                 printf("%s%s",argv[currentFile], ":");
                             }
-                            if (nflag) {
-                                printf("%d%s", number_line, ":");
-                            }
                             if (oflag) {
                                 // skip
                             } else {
+                            	if (nflag)
+                            		printf("%d%s", number_line, ":");
+                            
                                 printf("%s", buffer);
                             }
                         }
