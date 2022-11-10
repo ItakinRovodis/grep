@@ -149,17 +149,18 @@ int main(int argc, char **argv) {
                             if (count_files > 1 && !hflag) {
                                 printf("%s%s",argv[currentFile], ":");
                             }
-                            if (nflag) {
-                                printf("%d%s", number_line, ":");
-                            }
                             if (oflag) {
                                 while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                                	if (nflag)
+                                    	printf("%d%s", number_line, ":");
                                     printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
                                            start_pos + pmatch[0].rm_so);
                                     start_pos += pmatch[0].rm_eo;
                                     count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
                                 }
                             } else {
+                            	if (nflag)
+                                    printf("%d%s", number_line, ":");
                                 printf("%s", buffer);
                             }
                         }
@@ -204,17 +205,19 @@ int main(int argc, char **argv) {
                                 if (count_files > 1 && !hflag) {
                                     printf("%s%s",argv[currentFile], ":");
                                 }
-                                if (nflag) {
-                                    printf("%d%s", number_line, ":");
-                                }
                                 if (oflag) {
                                     while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
+                                    	if (nflag)
+                                    		printf("%d%s", number_line, ":");
                                         printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
                                                start_pos + pmatch[0].rm_so);
                                         start_pos += pmatch[0].rm_eo;
                                         count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
                                     }
                                 } else {
+                                	if (nflag) 
+                                    printf("%d%s", number_line, ":");
+                                
                                     printf("%s", buffer);
                                 }
                             }
