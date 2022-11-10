@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
 				if (fpattern != NULL) {
 					char str[bufferSize];
 					while (fgets(str,bufferSize,fpattern) != NULL) {
-						patterns = (char**)realloc(patterns, sizeof(patterns)+sizeof(char**));
+						patterns = (char**)realloc(patterns, (eflag+1)*sizeof(char**));
 						patterns[eflag] = (char*)malloc(strlen(str) * sizeof(char));
 						strcpy(patterns[eflag], str);
 						eflag++;
@@ -237,7 +237,10 @@ int main(int argc, char **argv) {
                 if (lflag && counter_lines > 0) {
                     counter_lines = 1;
                 }
-                printf("%s%s%d\n",count_files > 1 ?  argv[currentFile] : "\0",count_files > 1 ? ":" : "\0",counter_lines);
+                if (count_files > 1 && !hflag) {
+                	printf("%s%s",argv[currentFile], ":");
+                }
+                printf("%d\n",counter_lines);
             }
             if (lflag && cheker) {
                 printf("%s\n", argv[currentFile]);
