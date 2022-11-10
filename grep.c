@@ -124,6 +124,9 @@ int main(int argc, char **argv) {
         		if (vflag && regexec(&pattern, buffer, 1, pmatch, 0)) {
                     if (cflag) {
                        // inverse_checker = 1;
+                    	if (lflag) {
+                            cheker = 1;
+                        }
                     } else {
                         if (lflag) {
                             cheker = 1;
@@ -144,6 +147,9 @@ int main(int argc, char **argv) {
         		} else if (!vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
                     if (cflag) {
                         counter_lines++;
+                        if (lflag) {
+                            cheker = 1;
+                        }
                     } else {
                         if (lflag) {
                             cheker = 1;
@@ -235,7 +241,7 @@ int main(int argc, char **argv) {
         		counter_lines++;
         	}
         }
-        	if (lflag && cheker) {
+        if (lflag && cheker) {
                 printf("%s\n", argv[currentFile]);
             } else if (!lflag && cflag) {
                 if (count_files > 1 && !hflag) {
