@@ -108,12 +108,14 @@ int main(int argc, char **argv) {
                 file_flg = 1;
             }
     	}
+    	int inverse_checker = 1;
         const int bufferSize = 4096;
         char buffer[bufferSize];
         int cheker = 0;
         int number_line = 0;
         if (file_flg == 1) {
             while (fgets(buffer,bufferSize,fp) != NULL) {
+            inverse_checker = 1;
             number_line++;
             char * start_pos = buffer;
             int count = 0;
@@ -121,7 +123,7 @@ int main(int argc, char **argv) {
         	if (!eflag) {
         		if (vflag && regexec(&pattern, buffer, 1, pmatch, 0)) {
                     if (cflag) {
-                        counter_lines++;
+                       // inverse_checker = 1;
                     } else {
                         if (lflag) {
                             cheker = 1;
@@ -165,13 +167,15 @@ int main(int argc, char **argv) {
                             }
                         }
                     }
+        		} else if (vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
+        			inverse_checker = 0;
         		}
         	} else {
         		for (int i = 0; i < eflag; ++i) {
         			regcomp(&pattern, patterns[i], iflag);
                     if (vflag && regexec(&pattern, buffer, 1, pmatch, 0)) { // regexec == 0 if found
                         if (cflag) {
-                            counter_lines++;
+                        	// inverse_checker = 1;
                             if (lflag) {
                                 cheker = 1;
                             }
@@ -222,8 +226,13 @@ int main(int argc, char **argv) {
                                 }
                             }
                         }
+                    } else if (vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
+                    	inverse_checker = 0;
                     }
                 }
+        	}
+        	if (vflag && inverse_checker) {
+        		counter_lines++;
         	}
         }
         	if (lflag && cheker) {
