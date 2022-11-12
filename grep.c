@@ -109,7 +109,7 @@ void grepFile(int argc, char** argv, struct Flags *flags, char ** patterns) {
         	if (!flags->eflag) {
         		if (flags->vflag && regexec(&pattern, buffer, 1, pmatch, 0)) {
                     if (flags->cflag) {
-                       // inverse_checker = 1;
+                        inverse_checker = 1;
                     	if (flags->lflag) {
                             cheker = 1;
                         }
@@ -158,8 +158,7 @@ void grepFile(int argc, char** argv, struct Flags *flags, char ** patterns) {
                             }
                         }
                     }
-        		} else if (flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)
-                     || flags->vflag && flags->oflag) {
+        		} else if (flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
                         inverse_checker = 0;
                 }
         	} else {
@@ -199,14 +198,13 @@ void grepFile(int argc, char** argv, struct Flags *flags, char ** patterns) {
                                 }
                             }
                         }
-                    } else if (flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)
-                     || flags->vflag && flags->oflag) {
+                    } else if (flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
                     	inverse_checker = 0;
                     }
                 }
                 if (flags->vflag && inverse_checker) {
                     if (flags->cflag) {
-                            // inverse_checker = 1;
+                            inverse_checker = 1;
                             if (flags->lflag) {
                                 cheker = 1;
                             }
