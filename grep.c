@@ -59,216 +59,45 @@ int main(int argc, char** argv) {
 				ret = 0;
 		}
 	}
-    if (ret)
-        grepFile(argc,argv, &flags, patterns);
-	return 0;
-}
-
-void grepFile(int argc, char** argv, struct Flags *flags, char ** patterns) {
-    int count_output = 0;
-	int counter_lines = 0;
-	regex_t pattern;
-	FILE *fp;
-    int currentFile = searchFile(optind, flags->eflag);
-    int countFiles = argc - currentFile;
-    int ret = 1;
-    if (!flags->eflag) {
-        regcomp(&pattern, argv[optind], flags->iflag);
+    if (ret) {
+        int file_index = 0;
+        while (file_index  < argc) {
+            file_index = search_file(argc, argv, file_index); // находим файл в аргументах 
+            if (file_index < argc) {
+            	printf("file: %s\n", argv[file_index]);
+            	processing_grep(argv, file_index, &flags, patterns);
+            }
+        }
     }
-    while (currentFile < argc && ret) {
-    	int file_flg = 1;
-    	if (argc < 3) {
-    		printf("usage: grep [option] [-eivclnhsfo] [file ...]\n");
-    		ret = 0;
-    	} else {            
-    		fp = fopen(argv[currentFile], "rb");
-            counter_lines = 0;
-    		if (fp == NULL) {
-                if (flags->sflag == 0) {
-                    fprintf(stderr, "grep: %s: No such file of directory\n",
-                            argv[currentFile]);
-                }
-                file_flg = 0;
-            } else {                
-                file_flg = 1;
-            }
-    	}
-    	int inverse_checker = 1;
-        const int bufferSize = 4096;
-        char buffer[bufferSize];
-        int cheker = 0;
-        int number_line = 0;
-        if (file_flg == 1) {
-            while (fgets(buffer,bufferSize,fp) != NULL) {
-                count_output = 0;
-            inverse_checker = 1;
-            number_line++;
-            char * start_pos = buffer;
-            int count = 0;
-            regmatch_t pmatch[1];
-        	if (!flags->eflag) {
-        		if (flags->vflag && regexec(&pattern, buffer, 1, pmatch, 0)) {
-                    if (flags->cflag) {
-                        inverse_checker = 1;
-                    	if (flags->lflag) {
-                            cheker = 1;
-                        }
-                    } else {
-                        if (flags->lflag) {
-                            cheker = 1;
-                        } else {
-                            if (flags->oflag) {
-                                // skip
-                            } else {
-                                if (countFiles > 1 && !flags->hflag) {
-                                    printf("%s%s",argv[currentFile], ":");
-                                }
-                            	if (flags->nflag)
-                            		printf("%d%s", number_line, ":");                 
-                                printf("%s%s", buffer, buffer[strlen(buffer)-1]=='\n' ? "\0" : "\n");
-                            }
-                        }
-                    }
-        		} else if (!flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
-                    if (flags->cflag) {
-                        counter_lines++;
-                        if (flags->lflag) {
-                            cheker = 1;
-                        }
-                    } else {
-                        if (flags->lflag) {
-                            cheker = 1;
-                        } else {
-                            if (countFiles > 1 && !flags->hflag) {
-                                printf("%s%s",argv[currentFile], ":");
-                            }
-                            if (flags->oflag) {
-                                while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
-                                	if (flags->nflag)
-                                    	printf("%d%s", number_line, ":");
-                                    printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
-                                           start_pos + pmatch[0].rm_so);
-                                    start_pos += pmatch[0].rm_eo;
-                                    count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
-                                }
-                            } else {
-                            	if (flags->nflag)
-                                    printf("%d%s", number_line, ":");
-                                printf("%s%s", buffer, buffer[strlen(buffer)-1]=='\n' ? "\0" : "\n");
-                            }
-                        }
-                    }
-        		} else if (flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
-                        inverse_checker = 0;
-                }
-        	} else {
-                inverse_checker = 1;
-        		for (int i = 0; i < flags->eflag && !count_output; ++i) {
-        			regcomp(&pattern, patterns[i], flags->iflag);
-                    if (!flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
-                        if (flags->cflag) {
-                            counter_lines++;
-                            if (flags->lflag) {
-                                cheker = 1;
-                            }
-                        } else {
-                            if (flags->lflag) {
-                                cheker = 1;
-                            } else {
-                                if (countFiles > 1 && !flags->hflag) {
-                                    printf("%s%s",argv[currentFile], ":");
-                                }
-                                if (flags->oflag) {
-                                    count = 0;
-                                    start_pos = buffer;
-                                    while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
-                                    	if (flags->nflag)
-                                    		printf("%d%s", number_line, ":");
-                                        printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
-                                               start_pos + pmatch[0].rm_so);
-                                        start_pos += pmatch[0].rm_eo;
-                                        count = regexec(&pattern, start_pos, 1, pmatch, 0);
-                                    }
-                                } else {
-                                	if (flags->nflag) 
-                                    printf("%d%s", number_line, ":");
-                                
-                                    printf("%s%s", buffer, buffer[strlen(buffer)-1]=='\n' ? "\0" : "\n");
-                                    count_output = 1;
-                                }
-                            }
-                        }
-                    } else if (flags->vflag && !regexec(&pattern, buffer, 1, pmatch, 0)) {
-                    	inverse_checker = 0;
-                    }
-                }
-                if (flags->vflag && inverse_checker) {
-                    if (flags->cflag) {
-                            inverse_checker = 1;
-                            if (flags->lflag) {
-                                cheker = 1;
-                            }
-                        } else {
-                            if (flags->lflag) {
-                                cheker = 1;
-                            } else {
-                                if (flags->oflag) {
-                                    // skip
-                                } else {
-                                    if (countFiles > 1 && !flags->hflag) {
-                                    printf("%s%s",argv[currentFile], ":");
-                                }
-                                if (flags->nflag) {
-                                    printf("%d%s", number_line, ":");
-                                }
-                                    printf("%s%s", buffer, buffer[strlen(buffer)-1]=='\n' ? "\0" : "\n");
-                                    count_output = 1;
-                                }
-                            }
-                        }
-                }
-        	}
-        	if (flags->vflag && inverse_checker) {
-        		counter_lines++;
-        	}
-        }
-        if (flags->lflag && cheker && !(flags->vflag && flags->oflag)) {
-                printf("%s\n", argv[currentFile]);
-            } else if (!flags->lflag && flags->cflag) {
-                if (countFiles > 1 && !flags->hflag) {
-                	printf("%s%s",argv[currentFile], ":");
-                }
-                printf("%d\n",counter_lines);
-            }
-            
-            fclose(fp);
-        }
-        
-    	currentFile++;
-	}
-	for (int i = 0; i < flags->eflag; ++i) {
+    for (int i = 0; i < flags.eflag; ++i) {
     	free(patterns[i]);
     }
     free(patterns);
+	return 0;
 }
 
-int searchFile(int optind, int eflag) {
-	int ret = optind;
-	if (!eflag) {
-		ret++;
+void processing_grep(char** argv, int file_index, struct Flags* flags, char** patterns) {
+	FILE* fp = fopen(argv[file_index], "r");
+	int max_string_size = 4096;
+	char string[max_string_size];
+	int string_index = 1;
+	regmatch_t pmatch[1];
+	regex_t pattern;
+	if (fp != NULL) {
+		while(fgets(string, max_string_size, fp) != NULL) { // считываем построчно - с ограничением в максимальную длину строки
+			int to_write = 0;
+			for (int i = 0; i < flags->eflag; ++i) {
+				regcomp(&pattern, patterns[i], flags->iflag);
+				if (!regexec(&pattern, string, 1, pmatch, 0)){
+					to_write = 1;
+				}
+			}
+			if (to_write)
+				printf("%s", string); // перенос строки уже есть в строке!
+			string_index++;
+		} 
 	}
-	return ret;
 }
 
-void initFlags(struct Flags *flags) {
-	flags->eflag = 0;
-	flags->iflag = 0;
-	flags->vflag = 0;
-	flags->cflag = 0;
-	flags->lflag = 0;
-	flags->nflag = 0;
-	flags->hflag = 0;
-	flags->sflag = 0;
-	flags->fflag = 0;
-	flags->oflag = 0;
-}
+
+

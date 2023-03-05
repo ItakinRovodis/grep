@@ -1,32 +1,17 @@
-#include <regex.h>
-#include <stdio.h>
+#include "grep.h"
 
-int main(int argc, char** argv) {
-    regex_t regex;
-    int reti;
-    char buf[100];
-    char * pattern = argv[1];
-    int flag = REG_ICASE;
-    reti = regcomp(&regex,pattern,flag); // Не должен учитывать регистр
-    
-    FILE *fp = fopen(argv[2], "rb");
-
-    while (fgets(buf,sizeof(buf),fp)) {
-        char * start_pos = buf;
-        int count = 0;
-        regmatch_t pmatch[1];
-        reti = regexec(&regex,buf, 1, pmatch, 0);
-        if (!reti) {
-            while (!count && pmatch[0].rm_eo != pmatch[0].rm_so) {
-                printf("%.*s\n", (int)(pmatch[0].rm_eo - pmatch[0].rm_so),
-                       start_pos + pmatch[0].rm_so);
-                start_pos += pmatch[0].rm_eo;
-                count = regexec(&regex, start_pos, 1, pmatch, REG_NOTBOL);
-            }
-        } else if (reti == REG_NOMATCH){
-            printf("No match!\t%s", buf);
+void find_file(int argc, char** argv) {
+    FILE* fp = NULL;
+    int file_index = 0;
+    while (file_index < argc) {
+        file_index = search_file(argc,argv,file_index);
+        if (file_index < argc) {
+            printf("Find file! %s\n", argv[file_index]);
         }
     }
-    regfree(&regex);
-    return 0;
+}
+
+
+int main(int argc, char** argv) {
+    find_file(argc, argv);    
 }
