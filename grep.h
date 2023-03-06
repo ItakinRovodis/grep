@@ -23,16 +23,30 @@ struct Flags {
       int count_files; 
 };
 
-int search_file(int argc, char** argv, int file_index, struct Flags *flags) {
+int is_pattern(char* string, char** patterns, struct Flags *flags);
+char** search_for_pattern(int argc, char** argv, struct Flags *flags);
+void processing_grep(char** argv, int file_index, struct Flags *flags, char** patterns);
+void to_print(char* string, struct Flags *flags, int string_index, char* file_name);
+void to_print_oflag(regmatch_t *pmatch, regex_t pattern, char* string, struct Flags *flags, int string_index, char* file_name);
+
+int search_file(int argc, char** argv, int file_index, struct Flags *flags, char** patterns) {
     FILE* fp = NULL;
     file_index++;
-    for (;file_index < argc; ++file_index){
+    int count_patterns = 0;
+     for (;file_index < argc; ++file_index){
             if (argv[file_index][0] == '-') { // если параметр то пропускаем
-                  if(argv[file_index][1] == 'e' || argv[file_index][1] =='f') {
-                        file_index+=2;
+                  if(argv[file_index][1] == 'f' || argv[file_index][1] == 'e' ) {
+                        file_index += 1;
+                        if (is_pattern(argv[file_index], patterns, flags))
+                              count_patterns  += 1;
+                        continue;
                   } else {
-                        file_index+=1;
+                        continue;
                   }
+            }
+            if (is_pattern(argv[file_index], patterns, flags) && count_patterns < flags->eflag && !flags->fflag) { // fflag - считывание только с файла или с флагом -е, что уже обработанные случаи
+                  count_patterns++;
+                  continue; // пропускаем
             }
             if ((fp = fopen(argv[file_index], "rb")) != NULL) {
                   fclose(fp);
@@ -44,19 +58,37 @@ int search_file(int argc, char** argv, int file_index, struct Flags *flags) {
       return file_index;    
 }
 
+int is_pattern(char* string, char** patterns, struct Flags *flags) {
+      int result = 0;
+      for (int i = 0; i < flags->eflag && !result; ++i) {
+            if (!strcmp(string, patterns[i])) { // !0 если равны  -> 1
+                  result = 1;
+            }
+      }
+      return result;
+}
 
-int count_files(int argc, char** argv) { // считаем количество файлов 
+int count_files(int argc, char** argv, struct Flags *flags, char** patterns) { // считаем количество файлов 
       FILE* fp = NULL;
       int result = 0;
-      for (int file_index = 1;file_index < argc; ++file_index){
+      int file_index = 1;
+      int count_patterns = 0;
+      if (flags->eflag == 0) // если флага -e не было  - ищем файлы после второго аргумента (с третьего)
+            file_index = 2;
+      for (;file_index < argc; ++file_index){
             if (argv[file_index][0] == '-') { // если параметр то пропускаем
                   if(argv[file_index][1] == 'e' || argv[file_index][1] =='f') {
+                        count_patterns++;
                         file_index+=1;
                         continue;
                   } else {
                         continue;                        
                   }
-            } 
+            }
+            if (is_pattern(argv[file_index], patterns, flags) && count_patterns < flags->eflag && !flags->fflag) { // fflag - считывание только с файла или с флагом -е, что уже обработанные случаи
+                  count_patterns++;
+                  continue; // пропускаем
+            }
             result++; // считаем количество не флагов - открываются файлы или нет здесь не важно    
               
       }
@@ -77,9 +109,7 @@ void initFlags(struct Flags *flags) {
       flags->count_files = 0; // во флагах ещё количество файлов 
 }
 
-void processing_grep(char** argv, int file_index, struct Flags *flags, char** patterns);
-void to_print(char* string, struct Flags *flags, int string_index, char* file_name);
-void to_print_oflag(regmatch_t *pmatch, regex_t pattern, char* string, struct Flags *flags, int string_index, char* file_name);
+
 
 static struct option const long_options[] =
 {

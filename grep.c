@@ -60,12 +60,15 @@ int main(int argc, char** argv) {
 		}
 	}
     if (ret) {
-    	flags.count_files = count_files(argc, argv);
+    	if (patterns == NULL) { // если мы не получили шаблоны из аргументов -e -f флагов, то ищем их!
+    		patterns = search_for_pattern(argc, argv, &flags);
+    	}
+    	flags.count_files = count_files(argc, argv, &flags, patterns);    	
     	if (flags.hflag) // отработка -h флага - вывод названий файлов будет заблокирован!
     		flags.count_files = 1; 
         int file_index = 0;
         while (file_index  < argc) {
-            file_index = search_file(argc, argv, file_index, &flags); // находим файл в аргументах 
+            file_index = search_file(argc, argv, file_index, &flags, patterns); // находим файл в аргументах 
             if (file_index < argc) {
             	processing_grep(argv, file_index, &flags, patterns);
             }
@@ -142,9 +145,20 @@ void to_print_oflag(regmatch_t *pmatch, regex_t pattern, char* string, struct Fl
     	    count = regexec(&pattern, start_pos, 1, pmatch, REG_NOTBOL);
     	}
 	}
-
 }
 
-
+char** search_for_pattern(int argc, char** argv, struct Flags *flags) {
+	char** patterns = NULL;
+	int index_search = 1; // 0 это сам grep
+	while(argv[index_search][0] == '-') // пропускаем любые флаги
+		index_search++;
+	if (index_search < argc) {
+		patterns = (char**)realloc(patterns, (flags->eflag+1)*sizeof(char**)); 
+		patterns[flags->eflag] = (char*)malloc(strlen(argv[index_search]) * sizeof(char));
+		strcpy(patterns[flags->eflag], argv[index_search]);
+		flags->eflag++; // eflag ставим равным 1 - для универсальности :) хоть его и не было
+	}
+	return patterns;
+}
 
 
