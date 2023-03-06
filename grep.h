@@ -12,17 +12,18 @@
 struct Flags {
       int eflag;
       int iflag;
-   int vflag;
-   int cflag;
-   int lflag;
-	int nflag;
-   int hflag;
-   int sflag;
-   int fflag;
-   int oflag;
+      int vflag;
+      int cflag;
+      int lflag;
+      int nflag;
+      int hflag;
+      int sflag;
+      int fflag;
+      int oflag;
+      int count_files; 
 };
 
-int search_file(int argc, char** argv, int file_index) {
+int search_file(int argc, char** argv, int file_index, struct Flags *flags) {
     FILE* fp = NULL;
     file_index++;
     for (;file_index < argc; ++file_index){
@@ -36,11 +37,30 @@ int search_file(int argc, char** argv, int file_index) {
             if ((fp = fopen(argv[file_index], "rb")) != NULL) {
                   fclose(fp);
                   break;
-            } else {
+            } else if (argv[file_index][0] != '-' && !flags->sflag){ // -s подавляет сообщения о ошибках и нечитаемых файлах 
                   printf("grep: %s: No such file or directory!\n", argv[file_index]);
             }             
       }
       return file_index;    
+}
+
+
+int count_files(int argc, char** argv) { // считаем количество файлов 
+      FILE* fp = NULL;
+      int result = 0;
+      for (int file_index = 1;file_index < argc; ++file_index){
+            if (argv[file_index][0] == '-') { // если параметр то пропускаем
+                  if(argv[file_index][1] == 'e' || argv[file_index][1] =='f') {
+                        file_index+=1;
+                        continue;
+                  } else {
+                        continue;                        
+                  }
+            } 
+            result++; // считаем количество не флагов - открываются файлы или нет здесь не важно    
+              
+      }
+      return result;
 }
 
 void initFlags(struct Flags *flags) {
@@ -54,9 +74,12 @@ void initFlags(struct Flags *flags) {
       flags->sflag = 0;
       flags->fflag = 0;
       flags->oflag = 0;
+      flags->count_files = 0; // во флагах ещё количество файлов 
 }
 
 void processing_grep(char** argv, int file_index, struct Flags *flags, char** patterns);
+void to_print(char* string, struct Flags *flags, int string_index, char* file_name);
+void to_print_oflag(regmatch_t *pmatch, regex_t pattern, char* string, struct Flags *flags, int string_index, char* file_name);
 
 static struct option const long_options[] =
 {
