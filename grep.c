@@ -12,8 +12,8 @@ int main(int argc, char** argv) {
     switch (opt) {
       case 'e':  // работает
         patterns =
-            (char**)realloc(patterns, (flags.eflag + 1) * sizeof(char**));
-        patterns[flags.eflag] = (char*)malloc(strlen(optarg) * sizeof(char));
+            (char**)realloc(patterns, (flags.eflag + 1) * sizeof(char*));
+        patterns[flags.eflag] = (char*)malloc(strlen(optarg) * sizeof(char) + 1);
         strcpy(patterns[flags.eflag], optarg);
         flags.eflag++;
         break;
@@ -45,8 +45,8 @@ int main(int argc, char** argv) {
           char str[bufferSize];
           while (fgets(str, bufferSize, fpattern) != NULL) {
             patterns =
-                (char**)realloc(patterns, (flags.eflag + 1) * sizeof(char**));
-            patterns[flags.eflag] = (char*)malloc(strlen(str) * sizeof(char));
+                (char**)realloc(patterns, (flags.eflag + 1) * sizeof(char*));
+            patterns[flags.eflag] = (char*)malloc(strlen(str) * sizeof(char) + 1);
             strcpy(patterns[flags.eflag], str);
             flags.eflag++;
           }
@@ -110,6 +110,7 @@ void processing_grep(char** argv, int file_index, struct Flags* flags,
             to_print_oflag(pmatch, pattern, string, flags, string_index,
                            argv[file_index]);
         }
+        regfree(&pattern);
       }
       if (to_write && !flags->vflag) {  // выводим на печать если есть в строке
                                         // и нет флага -v
@@ -123,8 +124,7 @@ void processing_grep(char** argv, int file_index, struct Flags* flags,
       string_index++;
     }
     if (flags->lflag && c_counter) {  // выводим только название файла если есть
-                                      // совпадение и стоит флаг -l
-      printf("%s\n", argv[file_index]);
+      printf("%s\n", argv[file_index]);  // совпадение и стоит флаг -l
     } else if (flags->cflag) {
       if (flags->count_files > 1)
         printf(
@@ -133,6 +133,7 @@ void processing_grep(char** argv, int file_index, struct Flags* flags,
       printf("%d\n", c_counter);
     }
   }
+  fclose(fp);
 }
 
 void to_print(char* string, struct Flags* flags, int string_index,
@@ -173,9 +174,9 @@ char** search_for_pattern(int argc, char** argv, struct Flags* flags) {
   while (argv[index_search][0] == '-')  // пропускаем любые флаги
     index_search++;
   if (index_search < argc) {
-    patterns = (char**)realloc(patterns, (flags->eflag + 1) * sizeof(char**));
+    patterns = (char**)realloc(patterns, (flags->eflag + 1) * sizeof(char*));
     patterns[flags->eflag] =
-        (char*)malloc(strlen(argv[index_search]) * sizeof(char));
+        (char*)malloc(strlen(argv[index_search]) * sizeof(char) + 1);
     strcpy(patterns[flags->eflag], argv[index_search]);
     flags->eflag++;  // eflag ставим равным 1 - для универсальности :) хоть его
                      // и не было

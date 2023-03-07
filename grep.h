@@ -82,8 +82,7 @@ int count_files(int argc, char** argv, struct Flags* flags,
   int file_index = 1;
   int count_patterns = 0;
   if (flags->eflag == 0)  // если флага -e не было  - ищем файлы после второго
-                          // аргумента (с третьего)
-    file_index = 2;
+      file_index = 2;  // аргумента (с третьего)
   for (; file_index < argc; ++file_index) {
     if (argv[file_index][0] == '-') {  // если параметр то пропускаем
       if (argv[file_index][1] == 'e' || argv[file_index][1] == 'f') {
