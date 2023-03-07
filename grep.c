@@ -145,6 +145,9 @@ void to_print(char* string, struct Flags* flags, int string_index,
       printf("%s:", file_name);  // выводим на печать имя файла если их больше 1
     if (flags->nflag) printf("%d:", string_index);
     printf("%s", string);  // перенос строки уже есть в строке!
+    if (strchr(string, '\n') == NULL) {
+      printf("\n");
+    }
   }
 }
 

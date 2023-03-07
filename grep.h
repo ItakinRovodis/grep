@@ -38,13 +38,8 @@ int search_file(int argc, char** argv, int file_index, struct Flags* flags,
   int count_patterns = 0;
   for (; file_index < argc; ++file_index) {
     if (argv[file_index][0] == '-') {  // если параметр то пропускаем
-      if (argv[file_index][1] == 'f' || argv[file_index][1] == 'e') {
-        file_index += 1;
-        if (is_pattern(argv[file_index], patterns, flags)) count_patterns += 1;
+      if (is_pattern(argv[file_index], patterns, flags)) count_patterns += 1;
         continue;
-      } else {
-        continue;
-      }
     }
     if (is_pattern(argv[file_index], patterns, flags) &&
         count_patterns < flags->eflag &&
@@ -59,7 +54,7 @@ int search_file(int argc, char** argv, int file_index, struct Flags* flags,
     } else if (argv[file_index][0] != '-' &&
                !flags->sflag) {  // -s подавляет сообщения о ошибках и
                                  // нечитаемых файлах
-      printf("grep: %s: No such file or directory!\n", argv[file_index]);
+      printf("s21_grep: %s: No such file or directory\n", argv[file_index]);
     }
   }
   return file_index;
@@ -85,13 +80,7 @@ int count_files(int argc, char** argv, struct Flags* flags,
       file_index = 2;  // аргумента (с третьего)
   for (; file_index < argc; ++file_index) {
     if (argv[file_index][0] == '-') {  // если параметр то пропускаем
-      if (argv[file_index][1] == 'e' || argv[file_index][1] == 'f') {
-        count_patterns++;
-        file_index += 1;
-        continue;
-      } else {
-        continue;
-      }
+      continue;
     }
     if (is_pattern(argv[file_index], patterns, flags) &&
         count_patterns < flags->eflag &&
